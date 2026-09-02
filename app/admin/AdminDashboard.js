@@ -103,6 +103,12 @@ export default function AdminDashboard({ menu, settings }) {
           </div>
           <div className="flex items-center gap-2">
             <Link
+              href="/admin/qr"
+              className="rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-ink-soft shadow-sm ring-1 ring-black/5"
+            >
+              QR Pasang
+            </Link>
+            <Link
               href="/"
               target="_blank"
               className="rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-ink-soft shadow-sm ring-1 ring-black/5"
