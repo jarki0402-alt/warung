@@ -2,7 +2,13 @@ import { getMenu, getSettings, getAntarCountToday } from '@/lib/storage';
 import { normalizePhone } from '@/lib/whatsapp';
 import Storefront from './components/Storefront';
 
-export const dynamic = 'force-dynamic';
+// Sebelumnya 'force-dynamic' (selalu render ulang dari nol tiap ada yang buka —
+// bikin rawan kena "cold start" server yang bisa nambah 1+ detik). Sekarang di-cache
+// maksimal 5 detik (sama seperti interval polling di client), jadi kebanyakan orang
+// dapat halaman yang sudah siap dari cache — bukan nunggu server "bangun" tiap kali.
+// Begitu admin ubah menu/status, revalidatePath('/') di lib/actions.js langsung
+// membatalkan cache ini seketika juga (tidak perlu nunggu 5 detik itu).
+export const revalidate = 5;
 
 const SITE_URL = 'https://warungmbaksepti.biz.id';
 
