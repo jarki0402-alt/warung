@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { formatRupiah, slugify } from '@/lib/format';
 import { CATEGORY_ORDER, SUBKATEGORI_FOTO } from '@/lib/seed';
 import { normalizePhone } from '@/lib/whatsapp';
+import { loadCart, saveCart, clearStoredCart } from '@/lib/cartStorage';
 import MenuCard from './MenuCard';
 import GroupCard from './GroupCard';
 import CartDrawer from './CartDrawer';
@@ -28,6 +29,29 @@ export default function Storefront({ menu, settings }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [optionsPrompt, setOptionsPrompt] = useState(null); // item lagi diatur opsinya (ItemOptionsSheet)
   const [groupPrompt, setGroupPrompt] = useState(null); // { label, items } lagi dipilih (GroupedItemsSheet)
+
+  // Pulihkan keranjang dari localStorage setelah mount (bukan saat render pertama,
+  // supaya HTML dari server tetap cocok dengan render awal di client — hindari
+  // hydration mismatch). Keranjang lama otomatis diabaikan kalau sudah lewat 1 jam.
+  // Ini termasuk pengecualian sah untuk aturan "hindari setState di effect" —
+  // sinkronisasi dengan localStorage (sistem eksternal ke browser) setelah mount.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCart(loadCart());
+  }, []);
+
+  // Efek di atas & efek ini sama-sama jalan pada render pertama, tapi setCart-nya
+  // baru "kelihatan" di render berikutnya — tanpa penanda ini, efek simpan ini bisa
+  // sempat jalan lebih dulu dengan cart={} (nilai awal) dan menimpa localStorage
+  // jadi kosong SEBELUM keranjang yang dipulihkan sempat tersimpan lagi.
+  const skipNextSave = useRef(true);
+  useEffect(() => {
+    if (skipNextSave.current) {
+      skipNextSave.current = false;
+      return;
+    }
+    saveCart(cart);
+  }, [cart]);
 
   const storeClosed = settings.status === 'tutup';
 
@@ -138,6 +162,7 @@ export default function Storefront({ menu, settings }) {
 
   function clearCart() {
     setCart({});
+    clearStoredCart();
     setDrawerOpen(false);
   }
 

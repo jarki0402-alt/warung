@@ -55,6 +55,9 @@ export default function CartDrawer({ open, onClose, items, menu, settings, onAdd
     setError('');
     const message = buildOrderMessage({ settings, items, customerName, note });
     const url = buildWhatsAppUrl(settings, message);
+    // Kosongkan keranjang (termasuk yang tersimpan di localStorage) sebelum pindah ke
+    // WhatsApp — supaya kalau pelanggan balik lagi ke web, gak ketemu pesanan lama.
+    onClear();
     // Navigasi langsung di tab yang sama — browser langsung menawarkan buka aplikasi
     // WhatsApp, tanpa tab kosong yang sempat muncul dulu.
     window.location.href = url;
