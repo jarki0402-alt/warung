@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+:root {
+  --color-cream: #fbf3e5;
+  --color-surface: #fffdf9;
+  --color-ink: #2b2118;
+  --color-ink-soft: #6b5c4c;
+  --color-leaf: #2e5e39;
+  --color-leaf-dark: #1f4527;
+  --color-terracotta: #c1592e;
+  --color-terracotta-dark: #9c4522;
+  --color-gold: #e7a83c;
+  --color-whatsapp: #25d366;
+  --color-whatsapp-dark: #1da851;
+}
+
+@theme inline {
+  --color-cream: var(--color-cream);
+  --color-surface: var(--color-surface);
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-leaf: var(--color-leaf);
+  --color-leaf-dark: var(--color-leaf-dark);
+  --color-terracotta: var(--color-terracotta);
+  --color-terracotta-dark: var(--color-terracotta-dark);
+  --color-gold: var(--color-gold);
+  --color-whatsapp: var(--color-whatsapp);
+  --color-whatsapp-dark: var(--color-whatsapp-dark);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  background: var(--color-cream);
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  min-height: 100dvh;
+}
+
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+@layer components {
+  .input {
+    /* text-base (16px), bukan lebih kecil — di bawah 16px, Safari iOS otomatis zoom in
+       saat kolom ini di-tap, bikin pengguna harus zoom out manual. */
+    @apply w-full rounded-2xl border border-ink/10 bg-cream/40 px-4 py-2.5 text-base text-ink placeholder:text-ink-soft/70 focus:border-leaf focus:outline-none;
+  }
+}
+
+/* Pola titik lembut untuk hero — tanpa gambar, ringan */
+.pattern-dots {
+  background-image: radial-gradient(currentColor 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-slide-up {
+  animation: slide-up 0.22s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.18s ease-out;
+}
