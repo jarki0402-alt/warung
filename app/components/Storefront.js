@@ -25,9 +25,10 @@ function lineKey(id, chosenOpsi) {
   return s ? `${id}::${s}` : id;
 }
 
-export default function Storefront({ menu: initialMenu, settings: initialSettings }) {
+export default function Storefront({ menu: initialMenu, settings: initialSettings, antarCountToday: initialAntarCount }) {
   const [menu, setMenu] = useState(initialMenu);
   const [settings, setSettings] = useState(initialSettings);
+  const [antarCountToday, setAntarCountToday] = useState(initialAntarCount || 0);
   const [cart, setCart] = useState({}); // { [lineKey]: { id, chosenOpsi, qty, note } }
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [optionsPrompt, setOptionsPrompt] = useState(null); // item lagi diatur opsinya (ItemOptionsSheet)
@@ -64,6 +65,7 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
         // bukan cuma hemat data tapi juga hemat kerja CPU/baterai.
         setMenu((prev) => (JSON.stringify(prev) === JSON.stringify(data.menu) ? prev : data.menu));
         setSettings((prev) => (JSON.stringify(prev) === JSON.stringify(data.settings) ? prev : data.settings));
+        setAntarCountToday((prev) => (prev === data.antarCountToday ? prev : data.antarCountToday));
       } catch {
         // Gagal/timeout (jaringan lambat/putus) — biarkan, dicoba lagi di interval berikutnya.
       } finally {
@@ -455,6 +457,7 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
         items={cartItems}
         menu={menu}
         settings={settings}
+        antarCountToday={antarCountToday}
         onAdd={addLine}
         onRemove={removeLine}
         onClear={clearCart}

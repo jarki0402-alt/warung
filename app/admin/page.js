@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { isValidSessionToken, SESSION_COOKIE } from '@/lib/session';
+import { isValidSessionToken, sessionCookieName } from '@/lib/session';
 import { getMenu, getSettings } from '@/lib/storage';
 import AdminDashboard from './AdminDashboard';
 
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
   const cookieStore = await cookies();
-  if (!isValidSessionToken(cookieStore.get(SESSION_COOKIE)?.value)) {
+  if (!isValidSessionToken('admin', cookieStore.get(sessionCookieName('admin'))?.value)) {
     redirect('/admin/login');
   }
 

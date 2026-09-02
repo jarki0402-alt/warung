@@ -1,4 +1,4 @@
-import { getMenu, getSettings } from '@/lib/storage';
+import { getMenu, getSettings, getAntarCountToday } from '@/lib/storage';
 import { normalizePhone } from '@/lib/whatsapp';
 import Storefront from './components/Storefront';
 
@@ -25,7 +25,7 @@ function buildJsonLd(settings) {
 }
 
 export default async function HomePage() {
-  const [menu, settings] = await Promise.all([getMenu(), getSettings()]);
+  const [menu, settings, antarCountToday] = await Promise.all([getMenu(), getSettings(), getAntarCountToday()]);
   return (
     <>
       <script
@@ -34,7 +34,7 @@ export default async function HomePage() {
         // pengaturan (nama warung/tagline) bisa kabur dari tag script dan menyisipkan HTML/JS.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(buildJsonLd(settings)).replace(/</g, '\\u003c') }}
       />
-      <Storefront menu={menu} settings={settings} />
+      <Storefront menu={menu} settings={settings} antarCountToday={antarCountToday} />
     </>
   );
 }

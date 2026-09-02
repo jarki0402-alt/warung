@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { formatRupiah, formatChosenOpsi } from '@/lib/format';
 import { buildOrderMessage, buildWhatsAppUrl } from '@/lib/whatsapp';
-import { getStoreStatus } from '@/lib/storeStatus';
+import { getStoreStatus, isDeliveryDayToday } from '@/lib/storeStatus';
+import { incrementAntarCountAction } from '@/lib/actions';
 
 function resolveGroupItems(menu, label) {
   const bySubKategori = menu.filter((i) => i.subKategori === label);
@@ -12,10 +13,33 @@ function resolveGroupItems(menu, label) {
   return menu.filter((i) => i.kategori === label && !i.subKategori && (!i.opsi || i.opsi.length === 0));
 }
 
-export default function CartDrawer({ open, onClose, items, menu, settings, onAdd, onRemove, onClear, onEditOptions, onEditGroup }) {
+export default function CartDrawer({
+  open,
+  onClose,
+  items,
+  menu,
+  settings,
+  antarCountToday,
+  onAdd,
+  onRemove,
+  onClear,
+  onEditOptions,
+  onEditGroup,
+}) {
   const [customerName, setCustomerName] = useState('');
   const [note, setNote] = useState('');
+  const [metodePilihan, setMetodePilihan] = useState('ambil'); // 'ambil' | 'antar' — niat pelanggan
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const deliveryDay = isDeliveryDayToday(settings);
+  const batasAntar = settings.batasAntarHarian || 0;
+  const antarPenuh = deliveryDay && batasAntar > 0 && antarCountToday >= batasAntar;
+  // Metode yang BENERAN berlaku — dihitung ulang tiap render, bukan disinkronkan
+  // lewat effect. Kalau status "hari layanan antar"/"penuh" berubah saat keranjang
+  // lagi terbuka (polling 5 detik), ini otomatis jatuh balik ke "ambil" tanpa perlu
+  // efek terpisah buat "membetulkan" state lama.
+  const metode = deliveryDay && !antarPenuh ? metodePilihan : 'ambil';
 
   // Gabungkan baris keranjang untuk ditampilkan lebih ringkas:
   // - item dengan opsi (Pecel, Soto, dst.) -> satu baris per item, breakdown kombinasi opsi.
@@ -52,7 +76,7 @@ export default function CartDrawer({ open, onClose, items, menu, settings, onAdd
   const hasUnpriced = items.some((item) => item.harga == null);
   const total = items.reduce((sum, item) => sum + (item.harga != null ? item.harga * item.qty : 0), 0);
 
-  function handleOrder() {
+  async function handleOrder() {
     if (storeClosed) {
       setError(closedMessage);
       return;
@@ -61,8 +85,21 @@ export default function CartDrawer({ open, onClose, items, menu, settings, onAdd
       setError('Isi nama kamu dulu ya, biar Mbak Septi tahu pesanan ini punya siapa.');
       return;
     }
+    if (metode === 'antar' && !note.trim()) {
+      setError('Isi alamat pengantaran dulu ya.');
+      return;
+    }
     setError('');
-    const message = buildOrderMessage({ settings, items, customerName, note });
+    setSubmitting(true);
+
+    if (metode === 'antar') {
+      // Dicatat dulu sebelum pindah ke WhatsApp (bukan fire-and-forget) supaya
+      // hitungan batas harian akurat — Redis INCR ini sangat cepat (~puluhan ms),
+      // gak berasa nambah delay dibanding proses buka aplikasi WhatsApp sendiri.
+      await incrementAntarCountAction().catch(() => {});
+    }
+
+    const message = buildOrderMessage({ settings, items, customerName, note, metode });
     const url = buildWhatsAppUrl(settings, message);
     // Kosongkan keranjang (termasuk yang tersimpan di localStorage) sebelum pindah ke
     // WhatsApp — supaya kalau pelanggan balik lagi ke web, gak ketemu pesanan lama.
@@ -169,10 +206,57 @@ export default function CartDrawer({ open, onClose, items, menu, settings, onAdd
                   placeholder="Nama kamu"
                   className="w-full rounded-2xl border border-ink/10 bg-cream/40 px-4 py-3 text-base text-ink placeholder:text-ink-soft/70 focus:border-leaf focus:outline-none"
                 />
+
+                {deliveryDay && (
+                  <div>
+                    <div className="flex gap-2">
+                      <label className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-ink/10 py-2.5 text-sm font-semibold has-[:checked]:border-leaf has-[:checked]:bg-leaf/10 has-[:checked]:text-leaf-dark">
+                        <input
+                          type="radio"
+                          name="metode"
+                          value="ambil"
+                          checked={metode === 'ambil'}
+                          onChange={() => setMetodePilihan('ambil')}
+                          className="accent-leaf"
+                        />
+                        Ambil Sendiri
+                      </label>
+                      <label
+                        className={`flex flex-1 items-center justify-center gap-2 rounded-2xl border py-2.5 text-sm font-semibold ${
+                          antarPenuh
+                            ? 'cursor-not-allowed border-ink/10 text-ink-soft/50'
+                            : 'border-ink/10 has-[:checked]:border-leaf has-[:checked]:bg-leaf/10 has-[:checked]:text-leaf-dark'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="metode"
+                          value="antar"
+                          checked={metode === 'antar'}
+                          disabled={antarPenuh}
+                          onChange={() => setMetodePilihan('antar')}
+                          className="accent-leaf"
+                        />
+                        {antarPenuh ? 'Diantar (Penuh)' : 'Diantar'}
+                      </label>
+                    </div>
+                    {antarPenuh && (
+                      <p className="mt-1.5 text-xs text-terracotta">
+                        Sudah penuh pesanan antar hari ini, silakan ambil sendiri ya.
+                      </p>
+                    )}
+                    {!antarPenuh && settings.sedangMengantar && (
+                      <p className="mt-1.5 text-xs text-ink-soft">
+                        Lagi otw nganter pesanan lain, mohon maaf mungkin agak lama ya.
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Catatan untuk penjual (opsional): alamat, dll."
+                  placeholder={metode === 'antar' ? 'Alamat pengantaran (wajib diisi)' : 'Catatan untuk penjual (opsional): alamat, dll.'}
                   rows={2}
                   className="w-full resize-none rounded-2xl border border-ink/10 bg-cream/40 px-4 py-3 text-base text-ink placeholder:text-ink-soft/70 focus:border-leaf focus:outline-none"
                 />
@@ -200,11 +284,11 @@ export default function CartDrawer({ open, onClose, items, menu, settings, onAdd
               <button
                 type="button"
                 onClick={handleOrder}
-                disabled={storeClosed}
+                disabled={storeClosed || submitting}
                 className="flex w-full items-center justify-center gap-2 rounded-2xl bg-whatsapp py-4 text-[15px] font-bold text-white shadow-lg shadow-whatsapp/30 transition active:scale-[0.98] disabled:bg-ink-soft disabled:shadow-none disabled:active:scale-100"
               >
                 <WhatsAppIcon />
-                {storeClosed ? 'Warung Sedang Tutup' : 'Checkout via WhatsApp'}
+                {storeClosed ? 'Warung Sedang Tutup' : submitting ? 'Memproses...' : 'Checkout via WhatsApp'}
               </button>
               <button
                 type="button"

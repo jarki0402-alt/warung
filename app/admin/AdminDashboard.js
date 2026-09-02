@@ -175,6 +175,13 @@ export default function AdminDashboard({ menu, settings }) {
               Hari ini {settings.hariLibur} — warung otomatis tampil tutup buat pelanggan (libur mingguan).
             </p>
           )}
+
+          {/* Info-only — status ini dikontrol dari /driver oleh yang nganter, bukan dari sini */}
+          {settings.sedangMengantar && (
+            <p className="rounded-xl bg-gold/15 px-3.5 py-2 text-xs font-medium text-terracotta-dark">
+              🛵 Lagi ada yang nganter pesanan sekarang.
+            </p>
+          )}
         </div>
 
         {tab === 'menu' ? (
@@ -394,6 +401,25 @@ function SettingsTab({ settings }) {
             </option>
           ))}
         </select>
+      </Field>
+      <Field label="Hari Layanan Antar (opsi 'Diantar' cuma muncul di checkout pada hari ini)">
+        <select name="hariAntar" defaultValue={settings.hariAntar || ''} className="input">
+          <option value="">Tidak ada layanan antar</option>
+          {HARI_OPTIONS.map((hari) => (
+            <option key={hari} value={hari}>
+              {hari}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label="Batas Pesanan Antar per Hari (0 = tanpa batas)">
+        <input
+          type="number"
+          name="batasAntarHarian"
+          min="0"
+          defaultValue={settings.batasAntarHarian ?? 0}
+          className="input"
+        />
       </Field>
       <Field label="Catatan Pesanan (ditambahkan otomatis di pesan WhatsApp)">
         <textarea
