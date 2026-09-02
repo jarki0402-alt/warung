@@ -264,10 +264,11 @@ export default function CartDrawer({
                         Sudah penuh pesanan antar hari ini, silakan ambil sendiri ya.
                       </p>
                     )}
-                    {!antarPenuh && settings.sedangMengantar && (
+                    {metode === 'antar' && !antarPenuh && settings.sedangMengantar && (
                       <p className="mt-1.5 flex animate-pulse items-center gap-2 rounded-xl bg-terracotta/10 px-3 py-2 text-xs font-semibold text-terracotta">
                         <span className="h-2 w-2 shrink-0 rounded-full bg-terracotta" />
-                        Lagi otw nganter pesanan lain, mohon maaf mungkin agak lama ya.
+                        Lagi otw nganter pesanan lain, mohon maaf mungkin agak lama ya. Atau bisa ambil sendiri, gak
+                        perlu ngantri.
                       </p>
                     )}
                   </div>

@@ -138,7 +138,7 @@ export default function ItemOptionsSheet({ item, combos, onAddCombo, onRemoveCom
         <button
           type="button"
           onClick={onClose}
-          className="mt-4 w-full rounded-2xl bg-ink/5 py-3 text-sm font-semibold text-ink-soft"
+          className="mt-4 w-full rounded-2xl bg-leaf py-3 text-sm font-bold text-white shadow-lg shadow-leaf/20 active:scale-[0.98]"
         >
           Selesai
         </button>
