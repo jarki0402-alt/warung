@@ -1,7 +1,7 @@
 export default function sitemap() {
   return [
     {
-      url: 'https://warungmbaksepti.biz.id',
+      url: 'https://www.warungmbaksepti.biz.id',
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,

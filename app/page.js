@@ -10,7 +10,7 @@ import Storefront from './components/Storefront';
 // membatalkan cache ini seketika juga (tidak perlu nunggu 5 detik itu).
 export const revalidate = 5;
 
-const SITE_URL = 'https://warungmbaksepti.biz.id';
+const SITE_URL = 'https://www.warungmbaksepti.biz.id';
 
 function buildJsonLd(settings) {
   const data = {

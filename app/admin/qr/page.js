@@ -7,7 +7,7 @@ import { getSettings } from '@/lib/storage';
 
 export const dynamic = 'force-dynamic';
 
-const SITE_URL = 'https://warungmbaksepti.biz.id';
+const SITE_URL = 'https://www.warungmbaksepti.biz.id';
 const INSTALL_URL = `${SITE_URL}/pasang`;
 
 export default async function AdminQrPage() {
