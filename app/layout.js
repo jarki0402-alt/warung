@@ -14,7 +14,7 @@ const body = Plus_Jakarta_Sans({
   weight: ['400', '500', '600', '700'],
 });
 
-const SITE_URL = 'https://warungmbaksepti.biz.id';
+const SITE_URL = 'https://www.warungmbaksepti.biz.id';
 
 export async function generateMetadata() {
   const settings = await getSettings();
