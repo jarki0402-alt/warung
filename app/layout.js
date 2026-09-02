@@ -46,6 +46,13 @@ export async function generateMetadata() {
       description,
       images: ['/opengraph-image'],
     },
+    // Supaya "Add to Home Screen" di iPhone (Safari) juga buka tanpa address bar,
+    // mirip Android — cuma meta tag, bukan service worker, jadi tidak nambah risiko cache.
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'default',
+      title: settings.namaWarung,
+    },
   };
 }
 
