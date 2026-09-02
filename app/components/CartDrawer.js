@@ -274,7 +274,7 @@ export default function CartDrawer({
             </div>
 
             {/* Footer checkout — selalu terlihat, gaya e-commerce (Total + tombol bayar) */}
-            <div className="shrink-0 border-t border-ink/5 bg-surface px-5 pb-5 pt-3">
+            <div className="shrink-0 border-t border-ink/5 bg-surface px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3">
               {storeClosed && (
                 <p className="mb-3 rounded-xl bg-terracotta/10 px-3 py-2 text-center text-sm font-medium text-terracotta">
                   {closedMessage}

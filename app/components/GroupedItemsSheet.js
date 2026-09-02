@@ -18,7 +18,7 @@ export default function GroupedItemsSheet({ group, qtyByItemId, onAdd, onRemove,
         className="absolute inset-0 bg-ink/40 backdrop-blur-[1px] animate-fade-in"
       />
 
-      <div className="relative z-10 flex max-h-[90dvh] w-full max-w-sm flex-col overflow-y-auto rounded-t-3xl bg-surface p-5 pb-6 shadow-2xl animate-slide-up sm:rounded-3xl">
+      <div className="relative z-10 flex max-h-[90dvh] w-full max-w-sm flex-col overflow-y-auto rounded-t-3xl bg-surface p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl animate-slide-up sm:rounded-3xl">
         <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-ink/10 sm:hidden" />
 
         <div className="mb-4 flex items-center justify-between gap-3">

@@ -60,6 +60,11 @@ export const viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: '#FBF3E7',
+  // "cover" = layout boleh gambar sampai ke tepi layar (area notch/home-indicator),
+  // dipadu env(safe-area-inset-*) di CSS supaya konten gak ketiban area itu. Tanpa
+  // ini, bar checkout yang fixed di bawah bisa kelihatan "melayang"/gak presisi
+  // nempel ke tepi layar — terutama pas dibuka standalone dari Add to Home Screen.
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }) {

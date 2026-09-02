@@ -23,7 +23,7 @@ export default function DriverDashboard({ settings, antarCountToday }) {
 
   return (
     <div className="flex min-h-dvh flex-col bg-cream">
-      <header className="flex items-center justify-between px-4 py-3.5">
+      <header className="flex items-center justify-between px-4 py-3.5" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Driver</p>
           <h1 className="font-display text-base font-bold text-ink">{settings.namaWarung}</h1>

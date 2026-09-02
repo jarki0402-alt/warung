@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { formatRupiah, slugify } from '@/lib/format';
 import { CATEGORY_ORDER, SUBKATEGORI_FOTO } from '@/lib/seed';
 import { normalizePhone } from '@/lib/whatsapp';
@@ -8,9 +9,14 @@ import { loadCart, saveCart, clearStoredCart } from '@/lib/cartStorage';
 import { getStoreStatus } from '@/lib/storeStatus';
 import MenuCard from './MenuCard';
 import GroupCard from './GroupCard';
-import CartDrawer from './CartDrawer';
-import ItemOptionsSheet from './ItemOptionsSheet';
-import GroupedItemsSheet from './GroupedItemsSheet';
+
+// Ketiga sheet ini selalu kosong (null) di render pertama — baru muncul setelah
+// pelanggan benar-benar tap sesuatu (buka keranjang/atur pesanan). Dimuat lazy
+// (ssr: false) supaya JS-nya TIDAK ikut diproses CPU sebelum halaman pertama kali
+// tampil — paling kerasa bedanya di HP yang CPU-nya lemah, bukan cuma soal ukuran.
+const CartDrawer = dynamic(() => import('./CartDrawer'), { ssr: false });
+const ItemOptionsSheet = dynamic(() => import('./ItemOptionsSheet'), { ssr: false });
+const GroupedItemsSheet = dynamic(() => import('./GroupedItemsSheet'), { ssr: false });
 
 // Kunci baris keranjang: item tanpa opsi = idnya sendiri; item dengan kombinasi opsi
 // berbeda (mis. Pecel Pedas vs Pecel Tidak Pedas, atau Soto Kuah Pisah+Sambal Campur+Pedas)
@@ -278,7 +284,10 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-ink/5 bg-cream/90 backdrop-blur-md">
+      <header
+        className="sticky top-0 z-30 border-b border-ink/5 bg-cream/90 backdrop-blur-md"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 md:py-4">
           <div className="flex min-w-0 items-center gap-2 sm:gap-2.5 md:gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-leaf text-lg text-white md:h-12 md:w-12 md:text-xl">
@@ -451,39 +460,47 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
         </div>
       )}
 
-      <CartDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        items={cartItems}
-        menu={menu}
-        settings={settings}
-        antarCountToday={antarCountToday}
-        onAdd={addLine}
-        onRemove={removeLine}
-        onClear={clearCart}
-        onEditOptions={(item) => setOptionsPrompt(item)}
-        onEditGroup={(group) => setGroupPrompt(group)}
-      />
+      {/* Dirender kondisional (bukan selalu ada + return null di dalam) supaya
+          dynamic import di atas beneran menunda pemuatan JS-nya sampai dibutuhkan. */}
+      {drawerOpen && (
+        <CartDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          items={cartItems}
+          menu={menu}
+          settings={settings}
+          antarCountToday={antarCountToday}
+          onAdd={addLine}
+          onRemove={removeLine}
+          onClear={clearCart}
+          onEditOptions={(item) => setOptionsPrompt(item)}
+          onEditGroup={(group) => setGroupPrompt(group)}
+        />
+      )}
 
-      <ItemOptionsSheet
-        key={optionsPrompt?.id || 'none'}
-        item={optionsPrompt}
-        combos={optionsPrompt ? cartByItemId[optionsPrompt.id]?.combos || [] : []}
-        onAddCombo={(chosenOpsi) => optionsPrompt && addLine(optionsPrompt.id, chosenOpsi)}
-        onRemoveCombo={(chosenOpsi) => optionsPrompt && removeLine(optionsPrompt.id, chosenOpsi)}
-        onNoteChange={(chosenOpsi, text) => optionsPrompt && setLineNote(optionsPrompt.id, chosenOpsi, text)}
-        onClose={() => setOptionsPrompt(null)}
-        storeClosed={storeClosed}
-      />
+      {optionsPrompt && (
+        <ItemOptionsSheet
+          key={optionsPrompt.id}
+          item={optionsPrompt}
+          combos={cartByItemId[optionsPrompt.id]?.combos || []}
+          onAddCombo={(chosenOpsi) => addLine(optionsPrompt.id, chosenOpsi)}
+          onRemoveCombo={(chosenOpsi) => removeLine(optionsPrompt.id, chosenOpsi)}
+          onNoteChange={(chosenOpsi, text) => setLineNote(optionsPrompt.id, chosenOpsi, text)}
+          onClose={() => setOptionsPrompt(null)}
+          storeClosed={storeClosed}
+        />
+      )}
 
-      <GroupedItemsSheet
-        group={groupPrompt}
-        qtyByItemId={qtyByItemId}
-        onAdd={(id) => addLine(id)}
-        onRemove={(id) => removeLine(id)}
-        onClose={() => setGroupPrompt(null)}
-        storeClosed={storeClosed}
-      />
+      {groupPrompt && (
+        <GroupedItemsSheet
+          group={groupPrompt}
+          qtyByItemId={qtyByItemId}
+          onAdd={(id) => addLine(id)}
+          onRemove={(id) => removeLine(id)}
+          onClose={() => setGroupPrompt(null)}
+          storeClosed={storeClosed}
+        />
+      )}
     </div>
   );
 }
