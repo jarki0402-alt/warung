@@ -9,7 +9,7 @@ Dibangun dengan **Next.js 16** + **Tailwind CSS v4**, dioptimalkan untuk sangat 
 
 ## Kenapa tidak pakai database?
 
-Karena kebutuhannya kecil (cuma daftar menu, harga, dan pengaturan warung), project ini **tidak pakai database SQL**. Data disimpan sebagai file JSON sederhana di **Vercel Blob** (`.data/menu.json` & `.data/settings.json` saat development lokal). Saat admin menyimpan perubahan, file itu langsung diperbarui dan semua pengunjung otomatis melihat versi terbaru.
+Karena kebutuhannya kecil (cuma daftar menu, harga, dan pengaturan warung), project ini **tidak pakai database SQL**. Data disimpan sebagai key-value sederhana di **Upstash Redis** (`.data/menu.json` & `.data/settings.json` saat development lokal). Saat admin menyimpan perubahan, data langsung diperbarui dan semua pengunjung otomatis melihat versi terbaru — Redis dipilih (bukan Vercel Blob) karena baca-tulisnya konsisten instan, cocok untuk data kecil yang sering berubah seperti status buka/tutup.
 
 Pesanan **tidak disimpan di server sama sekali** — begitu pelanggan klik "Pesan via WhatsApp", pesan langsung dibuka di WhatsApp Ibu. Tidak ada data pesanan/pelanggan yang tersimpan di mana pun.
 
@@ -22,7 +22,7 @@ npm run dev
 
 Buka [http://localhost:3000](http://localhost:3000) untuk tampilan pelanggan, dan [http://localhost:3000/admin](http://localhost:3000/admin) untuk admin.
 
-Saat development lokal, data menu otomatis disimpan ke folder `.data/` (tidak ikut ter-commit ke git). Setelah deploy ke Vercel dengan Blob Store terhubung, data otomatis pindah ke Vercel Blob.
+Saat development lokal, data menu otomatis disimpan ke folder `.data/` (tidak ikut ter-commit ke git). Setelah deploy ke Vercel dengan Upstash Redis terhubung, data otomatis pindah ke Redis.
 
 ## Environment variables
 
@@ -31,14 +31,14 @@ Isi di file `.env.local` (lihat `.env.example`):
 | Variable               | Wajib? | Keterangan                                                                 |
 | ----------------------- | ------ | --------------------------------------------------------------------------- |
 | `ADMIN_PASSWORD`        | Ya     | Password untuk masuk ke `/admin`.                                          |
-| `BLOB_READ_WRITE_TOKEN` | Otomatis di Vercel | Diisi otomatis oleh Vercel setelah Blob Store dihubungkan ke project. Tidak perlu diisi manual di lokal. |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Otomatis di Vercel | Diisi otomatis oleh Vercel setelah Upstash Redis dihubungkan ke project. Tidak perlu diisi manual di lokal. |
 
 ## Deploy ke Vercel
 
 1. Push project ini ke GitHub, lalu import ke [vercel.com/new](https://vercel.com/new).
 2. Saat setup, tambahkan environment variable `ADMIN_PASSWORD` (Production & Preview).
-3. Setelah deploy pertama, buka tab **Storage** di dashboard project Vercel → **Create Database** → pilih **Blob** → hubungkan ke project ini. Vercel otomatis menambahkan `BLOB_READ_WRITE_TOKEN`.
-4. Redeploy sekali (Deployments → ⋯ → Redeploy) supaya environment variable Blob terbaca.
+3. Setelah deploy pertama, buka tab **Storage** di dashboard project Vercel → **Create Database** → pilih **Upstash** (Redis) → hubungkan ke project ini. Vercel otomatis menambahkan `UPSTASH_REDIS_REST_URL` & `UPSTASH_REDIS_REST_TOKEN`.
+4. Redeploy sekali (Deployments → ⋯ → Redeploy) supaya environment variable Redis terbaca.
 5. Selesai — buka `/admin`, login, dan mulai atur menu.
 
 ## Menambahkan foto menu asli
@@ -51,7 +51,7 @@ Sebelum foto asli ada, setiap menu tetap tampil menarik dengan ikon emoji + warn
 
 ## Struktur penting
 
-- `lib/storage.js` — baca/tulis data menu & pengaturan (Blob di production, file lokal saat dev).
+- `lib/storage.js` — baca/tulis data menu & pengaturan (Upstash Redis di production, file lokal saat dev).
 - `lib/actions.js` — semua aksi admin (Server Actions): tambah/edit/hapus menu, login/logout, ubah pengaturan.
 - `lib/session.js` — session login admin berbasis cookie yang ditandatangani (HMAC), tanpa perlu tabel user.
 - `lib/whatsapp.js` — membangun pesan & link `wa.me` dari isi keranjang.
