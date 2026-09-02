@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useMemo, useOptimistic, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { formatRupiah } from '@/lib/format';
 import {
@@ -18,6 +18,17 @@ export default function AdminDashboard({ menu, settings }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null); // item yang mau dihapus, nunggu konfirmasi
   const [, startTransition] = useTransition();
   const [statusPending, startStatusTransition] = useTransition();
+
+  // Update tampilan LANGSUNG saat tombol diklik (gak nunggu round-trip server dulu),
+  // baru disinkronkan ke data asli begitu server-nya selesai. Ini yang bikin toggle
+  // "Habis/Tersedia" dan "Buka/Tutup" kerasa instan walau prosesnya di background.
+  const [optimisticMenu, setOptimisticMenu] = useOptimistic(menu, (state, { id, tersedia }) =>
+    state.map((item) => (item.id === id ? { ...item, tersedia } : item))
+  );
+  const [optimisticSettings, setOptimisticSettings] = useOptimistic(settings, (state, patch) => ({
+    ...state,
+    ...patch,
+  }));
 
   const categories = useMemo(() => [...new Set(menu.map((i) => i.kategori))].sort(), [menu]);
   const subCategories = useMemo(
@@ -42,14 +53,17 @@ export default function AdminDashboard({ menu, settings }) {
 
   function handleToggleAvailability(item) {
     startTransition(async () => {
+      setOptimisticMenu({ id: item.id, tersedia: !item.tersedia });
       const result = await toggleAvailabilityAction(item.id, !item.tersedia);
       if (result?.error) alert(result.error);
     });
   }
 
   function handleToggleStatus() {
+    const next = settings.status === 'tutup' ? 'buka' : 'tutup';
     startStatusTransition(async () => {
-      const result = await toggleStoreStatusAction(settings.status === 'tutup' ? 'buka' : 'tutup');
+      setOptimisticSettings({ status: next });
+      const result = await toggleStoreStatusAction(next);
       if (result?.error) alert(result.error);
     });
   }
@@ -106,20 +120,20 @@ export default function AdminDashboard({ menu, settings }) {
           onClick={handleToggleStatus}
           disabled={statusPending}
           className={`mb-5 flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-semibold shadow-sm transition ${
-            settings.status === 'tutup' ? 'bg-terracotta/10 text-terracotta' : 'bg-leaf/10 text-leaf-dark'
+            optimisticSettings.status === 'tutup' ? 'bg-terracotta/10 text-terracotta' : 'bg-leaf/10 text-leaf-dark'
           }`}
         >
           <span>
-            Status warung: <strong>{settings.status === 'tutup' ? 'Tutup' : 'Buka'}</strong>
+            Status warung: <strong>{optimisticSettings.status === 'tutup' ? 'Tutup' : 'Buka'}</strong>
           </span>
           <span className="rounded-full bg-white px-3 py-1 text-xs shadow-sm">
-            {statusPending ? '...' : `Tandai ${settings.status === 'tutup' ? 'Buka' : 'Tutup'}`}
+            {`Tandai ${optimisticSettings.status === 'tutup' ? 'Buka' : 'Tutup'}`}
           </span>
         </button>
 
         {tab === 'menu' ? (
           <MenuTab
-            menu={menu}
+            menu={optimisticMenu}
             categories={categories}
             onAdd={() => setModal({ open: true, item: null })}
             onEdit={(item) => setModal({ open: true, item })}
