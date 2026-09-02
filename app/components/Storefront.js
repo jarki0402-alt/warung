@@ -36,7 +36,9 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
   // Cek status menu & warung secara berkala (bukan cuma sekali saat halaman dibuka)
   // supaya kalau penjual tandai "Habis" atau tutup warung, pelanggan yang sudah
   // buka halaman ikut lihat perubahannya tanpa perlu refresh manual. Berhenti polling
-  // saat tab tidak aktif — hemat data & baterai pelanggan.
+  // saat tab tidak aktif — hemat data & baterai pelanggan. 5 detik dipilih karena
+  // tiap cek cuma ~1KB dan tidak trigger render sama sekali kalau tidak ada
+  // perubahan (lihat di bawah) — jadi cukup cepat terasa "real-time" tanpa boros.
   useEffect(() => {
     let cancelled = false;
     let inFlight = null; // AbortController permintaan yang lagi jalan, kalau ada
@@ -67,7 +69,7 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
         clearTimeout(timeout);
       }
     }
-    const interval = setInterval(poll, 15000);
+    const interval = setInterval(poll, 5000);
     document.addEventListener('visibilitychange', poll);
     return () => {
       cancelled = true;
