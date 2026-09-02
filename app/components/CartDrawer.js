@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { formatRupiah, formatChosenOpsi } from '@/lib/format';
 import { buildOrderMessage, buildWhatsAppUrl } from '@/lib/whatsapp';
@@ -30,8 +30,11 @@ export default function CartDrawer({
   const [customerName, setCustomerName] = useState('');
   const [note, setNote] = useState('');
   const [metodePilihan, setMetodePilihan] = useState('ambil'); // 'ambil' | 'antar' — niat pelanggan
-  const [error, setError] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [addressError, setAddressError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const nameInputRef = useRef(null);
+  const addressInputRef = useRef(null);
 
   useLockBodyScroll(open);
 
@@ -80,19 +83,23 @@ export default function CartDrawer({
   const total = items.reduce((sum, item) => sum + (item.harga != null ? item.harga * item.qty : 0), 0);
 
   async function handleOrder() {
-    if (storeClosed) {
-      setError(closedMessage);
+    // Tombol checkout sudah disabled saat storeClosed — ini cuma jaga-jaga.
+    if (storeClosed) return;
+
+    const missingName = !customerName.trim();
+    const missingAddress = metode === 'antar' && !note.trim();
+    setNameError(missingName ? 'Isi nama kamu dulu ya' : '');
+    setAddressError(missingAddress ? 'Isi alamat pengantaran dulu ya' : '');
+
+    if (missingName) {
+      nameInputRef.current?.focus();
       return;
     }
-    if (!customerName.trim()) {
-      setError('Isi nama kamu dulu ya, biar Mbak Septi tahu pesanan ini punya siapa.');
+    if (missingAddress) {
+      addressInputRef.current?.focus();
       return;
     }
-    if (metode === 'antar' && !note.trim()) {
-      setError('Isi alamat pengantaran dulu ya.');
-      return;
-    }
-    setError('');
+
     setSubmitting(true);
 
     if (metode === 'antar') {
@@ -202,13 +209,22 @@ export default function CartDrawer({
               </ul>
 
               <div className="flex flex-col gap-2.5 border-t border-dashed border-ink/10 py-4">
-                <input
-                  type="text"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Nama kamu"
-                  className="w-full rounded-2xl border border-ink/10 bg-cream/40 px-4 py-3 text-base text-ink placeholder:text-ink-soft/70 focus:border-leaf focus:outline-none"
-                />
+                <div>
+                  <input
+                    ref={nameInputRef}
+                    type="text"
+                    value={customerName}
+                    onChange={(e) => {
+                      setCustomerName(e.target.value);
+                      if (nameError) setNameError('');
+                    }}
+                    placeholder="Nama kamu"
+                    className={`w-full rounded-2xl border bg-cream/40 px-4 py-3 text-base text-ink placeholder:text-ink-soft/70 focus:outline-none ${
+                      nameError ? 'border-terracotta focus:border-terracotta' : 'border-ink/10 focus:border-leaf'
+                    }`}
+                  />
+                  {nameError && <p className="mt-1 pl-1 text-xs font-medium text-terracotta">{nameError}</p>}
+                </div>
 
                 {deliveryDay && (
                   <div>
@@ -257,19 +273,27 @@ export default function CartDrawer({
                   </div>
                 )}
 
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder={metode === 'antar' ? 'Alamat pengantaran (wajib diisi)' : 'Catatan untuk penjual (opsional): alamat, dll.'}
-                  rows={2}
-                  className="w-full resize-none rounded-2xl border border-ink/10 bg-cream/40 px-4 py-3 text-base text-ink placeholder:text-ink-soft/70 focus:border-leaf focus:outline-none"
-                />
+                <div>
+                  <textarea
+                    ref={addressInputRef}
+                    value={note}
+                    onChange={(e) => {
+                      setNote(e.target.value);
+                      if (addressError) setAddressError('');
+                    }}
+                    placeholder={metode === 'antar' ? 'Alamat pengantaran (wajib diisi)' : 'Catatan untuk penjual (opsional): alamat, dll.'}
+                    rows={2}
+                    className={`w-full resize-none rounded-2xl border bg-cream/40 px-4 py-3 text-base text-ink placeholder:text-ink-soft/70 focus:outline-none ${
+                      addressError ? 'border-terracotta focus:border-terracotta' : 'border-ink/10 focus:border-leaf'
+                    }`}
+                  />
+                  {addressError && <p className="mt-1 pl-1 text-xs font-medium text-terracotta">{addressError}</p>}
+                </div>
                 {metode === 'antar' && (
                   <p className="rounded-xl bg-leaf/10 px-3 py-2 text-sm font-medium text-leaf-dark">
                     Nanti jangan lupa kirim Share Location WhatsApp ya, biar gampang dianter.
                   </p>
                 )}
-                {error && <p className="text-sm font-medium text-terracotta">{error}</p>}
               </div>
             </div>
 
