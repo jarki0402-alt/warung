@@ -5,6 +5,7 @@ import { formatRupiah, slugify } from '@/lib/format';
 import { CATEGORY_ORDER, SUBKATEGORI_FOTO } from '@/lib/seed';
 import { normalizePhone } from '@/lib/whatsapp';
 import { loadCart, saveCart, clearStoredCart } from '@/lib/cartStorage';
+import { getStoreStatus } from '@/lib/storeStatus';
 import MenuCard from './MenuCard';
 import GroupCard from './GroupCard';
 import CartDrawer from './CartDrawer';
@@ -135,7 +136,7 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
     saveCart(cart);
   }, [cart]);
 
-  const storeClosed = settings.status === 'tutup';
+  const { closed: storeClosed, reason: closedReason, message: closedMessage } = getStoreStatus(settings);
 
   const categories = useMemo(() => {
     const present = [...new Set(menu.map((item) => item.kategori))];
@@ -291,7 +292,7 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
                 }`}
               >
                 <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${storeClosed ? 'bg-terracotta' : 'bg-leaf'}`} />
-                {storeClosed ? 'Tutup' : 'Buka'}
+                {closedReason === 'istirahat' ? 'Istirahat' : closedReason === 'libur-mingguan' ? 'Libur' : storeClosed ? 'Tutup' : 'Buka'}
                 {settings.jamOperasional ? ` · ${settings.jamOperasional}` : ''}
               </span>
             </div>
@@ -353,8 +354,7 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
 
       {storeClosed && (
         <div className="mx-3 mt-4 max-w-4xl rounded-2xl bg-terracotta/10 px-4 py-3 text-center text-sm font-medium text-terracotta sm:mx-auto">
-          Warung sedang tutup{settings.jamOperasional ? ` · buka lagi ${settings.jamOperasional}` : ''}. Kamu tetap
-          bisa lihat-lihat menu ya!
+          {closedMessage}
         </div>
       )}
 

@@ -7,9 +7,12 @@ import {
   deleteMenuItemAction,
   logoutAction,
   toggleAvailabilityAction,
+  toggleIstirahatAction,
   toggleStoreStatusAction,
   updateSettingsAction,
 } from '@/lib/actions';
+import { HARI_OPTIONS } from '@/lib/seed';
+import { getJakartaDayName } from '@/lib/storeStatus';
 import MenuItemModal from './MenuItemModal';
 
 export default function AdminDashboard({ menu, settings }) {
@@ -18,6 +21,7 @@ export default function AdminDashboard({ menu, settings }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null); // item yang mau dihapus, nunggu konfirmasi
   const [, startTransition] = useTransition();
   const [statusPending, startStatusTransition] = useTransition();
+  const [istirahatPending, startIstirahatTransition] = useTransition();
 
   // Update tampilan LANGSUNG saat tombol diklik (gak nunggu round-trip server dulu),
   // baru disinkronkan ke data asli begitu server-nya selesai. Ini yang bikin toggle
@@ -75,6 +79,15 @@ export default function AdminDashboard({ menu, settings }) {
     });
   }
 
+  function handleToggleIstirahat() {
+    const next = !settings.istirahat;
+    startIstirahatTransition(async () => {
+      setOptimisticSettings({ istirahat: next });
+      const result = await toggleIstirahatAction(next);
+      if (result?.error) alert(result.error);
+    });
+  }
+
   return (
     <div className="min-h-dvh bg-cream pb-16">
       <header className="sticky top-0 z-20 border-b border-ink/5 bg-cream/90 backdrop-blur-md">
@@ -121,22 +134,48 @@ export default function AdminDashboard({ menu, settings }) {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 pt-5">
-        {/* Store status banner */}
-        <button
-          type="button"
-          onClick={handleToggleStatus}
-          disabled={statusPending}
-          className={`mb-5 flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-semibold shadow-sm transition ${
-            optimisticSettings.status === 'tutup' ? 'bg-terracotta/10 text-terracotta' : 'bg-leaf/10 text-leaf-dark'
-          }`}
-        >
-          <span>
-            Status warung: <strong>{optimisticSettings.status === 'tutup' ? 'Tutup' : 'Buka'}</strong>
-          </span>
-          <span className="rounded-full bg-white px-3 py-1 text-xs shadow-sm">
-            {`Tandai ${optimisticSettings.status === 'tutup' ? 'Buka' : 'Tutup'}`}
-          </span>
-        </button>
+        {/* Status warung: tutup penuh, istirahat sejenak, & info libur mingguan */}
+        <div className="mb-5 flex flex-col gap-2.5">
+          <button
+            type="button"
+            onClick={handleToggleStatus}
+            disabled={statusPending}
+            className={`flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-semibold shadow-sm transition ${
+              optimisticSettings.status === 'tutup' ? 'bg-terracotta/10 text-terracotta' : 'bg-leaf/10 text-leaf-dark'
+            }`}
+          >
+            <span>
+              Status warung: <strong>{optimisticSettings.status === 'tutup' ? 'Tutup' : 'Buka'}</strong>
+            </span>
+            <span className="rounded-full bg-white px-3 py-1 text-xs shadow-sm">
+              {`Tandai ${optimisticSettings.status === 'tutup' ? 'Buka' : 'Tutup'}`}
+            </span>
+          </button>
+
+          {/* Istirahat — tutup sejenak (sholat/istirahat), beda dari tutup penuh. Cuma
+              relevan kalau warung lagi "Buka" — kalau sudah tutup penuh, gak perlu ini. */}
+          {optimisticSettings.status !== 'tutup' && (
+            <button
+              type="button"
+              onClick={handleToggleIstirahat}
+              disabled={istirahatPending}
+              className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold shadow-sm transition ${
+                optimisticSettings.istirahat ? 'bg-gold/15 text-terracotta-dark' : 'bg-white text-ink-soft ring-1 ring-black/5'
+              }`}
+            >
+              <span>{optimisticSettings.istirahat ? 'Sedang istirahat sebentar 🙏' : 'Lagi sholat/istirahat sebentar?'}</span>
+              <span className="rounded-full bg-white px-3 py-1 text-xs shadow-sm ring-1 ring-black/5">
+                {optimisticSettings.istirahat ? 'Sudah Balik' : 'Istirahat Dulu'}
+              </span>
+            </button>
+          )}
+
+          {settings.hariLibur && getJakartaDayName() === settings.hariLibur && (
+            <p className="rounded-xl bg-ink/5 px-3.5 py-2 text-xs text-ink-soft">
+              Hari ini {settings.hariLibur} — warung otomatis tampil tutup buat pelanggan (libur mingguan).
+            </p>
+          )}
+        </div>
 
         {tab === 'menu' ? (
           <MenuTab
@@ -345,6 +384,16 @@ function SettingsTab({ settings }) {
       </Field>
       <Field label="Jam Operasional">
         <input name="jamOperasional" defaultValue={settings.jamOperasional} className="input" placeholder="08.00 - 17.00" />
+      </Field>
+      <Field label="Libur Mingguan (otomatis tutup tiap minggu di hari ini, tanpa perlu di-toggle manual)">
+        <select name="hariLibur" defaultValue={settings.hariLibur || ''} className="input">
+          <option value="">Tidak ada libur tetap</option>
+          {HARI_OPTIONS.map((hari) => (
+            <option key={hari} value={hari}>
+              {hari}
+            </option>
+          ))}
+        </select>
       </Field>
       <Field label="Catatan Pesanan (ditambahkan otomatis di pesan WhatsApp)">
         <textarea

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { formatRupiah, formatChosenOpsi } from '@/lib/format';
 import { buildOrderMessage, buildWhatsAppUrl } from '@/lib/whatsapp';
+import { getStoreStatus } from '@/lib/storeStatus';
 
 function resolveGroupItems(menu, label) {
   const bySubKategori = menu.filter((i) => i.subKategori === label);
@@ -45,15 +46,15 @@ export default function CartDrawer({ open, onClose, items, menu, settings, onAdd
 
   // Status warung bisa berubah SAAT keranjang ini sedang terbuka (polling di
   // Storefront tiap 5 detik) — tanpa ini, pelanggan yang sudah buka keranjang
-  // sebelum warung tutup tetap bisa checkout padahal warungnya sudah tutup.
-  const storeClosed = settings.status === 'tutup';
+  // sebelum warung tutup tetap bisa checkout padahal warungnya sudah tutup/istirahat/libur.
+  const { closed: storeClosed, message: closedMessage } = getStoreStatus(settings);
   const hasPriced = items.some((item) => item.harga != null);
   const hasUnpriced = items.some((item) => item.harga == null);
   const total = items.reduce((sum, item) => sum + (item.harga != null ? item.harga * item.qty : 0), 0);
 
   function handleOrder() {
     if (storeClosed) {
-      setError('Warung baru saja tutup, belum bisa checkout sekarang ya.');
+      setError(closedMessage);
       return;
     }
     if (!customerName.trim()) {
@@ -183,7 +184,7 @@ export default function CartDrawer({ open, onClose, items, menu, settings, onAdd
             <div className="shrink-0 border-t border-ink/5 bg-surface px-5 pb-5 pt-3">
               {storeClosed && (
                 <p className="mb-3 rounded-xl bg-terracotta/10 px-3 py-2 text-center text-sm font-medium text-terracotta">
-                  Warung baru saja tutup — checkout belum bisa dilakukan sekarang.
+                  {closedMessage}
                 </p>
               )}
 
