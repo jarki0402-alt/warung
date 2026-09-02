@@ -246,7 +246,8 @@ export default function CartDrawer({
                       </p>
                     )}
                     {!antarPenuh && settings.sedangMengantar && (
-                      <p className="mt-1.5 text-xs text-ink-soft">
+                      <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-terracotta">
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-terracotta" />
                         Lagi otw nganter pesanan lain, mohon maaf mungkin agak lama ya.
                       </p>
                     )}
@@ -260,6 +261,12 @@ export default function CartDrawer({
                   rows={2}
                   className="w-full resize-none rounded-2xl border border-ink/10 bg-cream/40 px-4 py-3 text-base text-ink placeholder:text-ink-soft/70 focus:border-leaf focus:outline-none"
                 />
+                {metode === 'antar' && (
+                  <p className="rounded-xl bg-leaf/10 px-3 py-2 text-xs text-leaf-dark">
+                    Setelah ini masuk ke chat WhatsApp, tolong kirim juga Share Location WhatsApp-nya ya, biar
+                    diantarnya lebih gampang.
+                  </p>
+                )}
                 {error && <p className="text-sm font-medium text-terracotta">{error}</p>}
               </div>
             </div>
