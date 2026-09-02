@@ -2,8 +2,11 @@
 
 import { formatRupiah } from '@/lib/format';
 import { PlusIcon, MinusIcon } from './icons';
+import useLockBodyScroll from './useLockBodyScroll';
 
 export default function GroupedItemsSheet({ group, qtyByItemId, onAdd, onRemove, onClose, storeClosed }) {
+  useLockBodyScroll(Boolean(group));
+
   if (!group) return null;
 
   return (

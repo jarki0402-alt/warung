@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { addMenuItemAction, updateMenuItemAction } from '@/lib/actions';
+import useLockBodyScroll from '../components/useLockBodyScroll';
 
 const QUICK_ICONS = ['🍽️', '🥗', '🍲', '🍜', '🍢', '🍌', '🍧', '🥘', '🍛', '🧆', '🥟', '🍡'];
 
@@ -15,6 +16,7 @@ export default function MenuItemModal({ onClose, initialData, categories, subCat
   const [error, setError] = useState('');
   const [icon, setIcon] = useState(initialData?.icon || '🍽️');
   const [opsiGroups, setOpsiGroups] = useState(() => opsiToFormState(initialData?.opsi));
+  useLockBodyScroll(true); // komponen ini cuma di-mount saat memang lagi terbuka
 
   const isEdit = Boolean(initialData);
 

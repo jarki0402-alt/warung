@@ -5,12 +5,14 @@ import Image from 'next/image';
 import { formatChosenOpsi } from '@/lib/format';
 import { SPICE_LEVEL_COLORS } from '@/lib/seed';
 import { PlusIcon, MinusIcon } from './icons';
+import useLockBodyScroll from './useLockBodyScroll';
 
 // Catatan: parent me-render komponen ini dengan `key={item?.id}` supaya setiap kali
 // item yang diatur berganti, komponen remount total dan state reset secara alami
 // (tanpa perlu useEffect untuk sinkronisasi state).
 export default function ItemOptionsSheet({ item, combos, onAddCombo, onRemoveCombo, onNoteChange, onClose, storeClosed }) {
   const [selection, setSelection] = useState({});
+  useLockBodyScroll(Boolean(item));
 
   if (!item) return null;
 

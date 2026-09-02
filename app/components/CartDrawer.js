@@ -6,6 +6,7 @@ import { formatRupiah, formatChosenOpsi } from '@/lib/format';
 import { buildOrderMessage, buildWhatsAppUrl } from '@/lib/whatsapp';
 import { getStoreStatus, isDeliveryDayToday } from '@/lib/storeStatus';
 import { incrementAntarCountAction } from '@/lib/actions';
+import useLockBodyScroll from './useLockBodyScroll';
 
 function resolveGroupItems(menu, label) {
   const bySubKategori = menu.filter((i) => i.subKategori === label);
@@ -31,6 +32,8 @@ export default function CartDrawer({
   const [metodePilihan, setMetodePilihan] = useState('ambil'); // 'ambil' | 'antar' — niat pelanggan
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useLockBodyScroll(open);
 
   const deliveryDay = isDeliveryDayToday(settings);
   const batasAntar = settings.batasAntarHarian || 0;
@@ -246,7 +249,7 @@ export default function CartDrawer({
                       </p>
                     )}
                     {!antarPenuh && settings.sedangMengantar && (
-                      <p className="mt-1.5 flex items-center gap-2 rounded-xl bg-terracotta/10 px-3 py-2 text-xs font-semibold text-terracotta">
+                      <p className="mt-1.5 flex animate-pulse items-center gap-2 rounded-xl bg-terracotta/10 px-3 py-2 text-xs font-semibold text-terracotta">
                         <span className="h-2 w-2 shrink-0 rounded-full bg-terracotta" />
                         Lagi otw nganter pesanan lain, mohon maaf mungkin agak lama ya.
                       </p>

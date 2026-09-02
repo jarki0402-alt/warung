@@ -13,12 +13,14 @@ import {
 } from '@/lib/actions';
 import { HARI_OPTIONS } from '@/lib/seed';
 import { getJakartaDayName } from '@/lib/storeStatus';
+import useLockBodyScroll from '../components/useLockBodyScroll';
 import MenuItemModal from './MenuItemModal';
 
 export default function AdminDashboard({ menu, settings }) {
   const [tab, setTab] = useState('menu');
   const [modal, setModal] = useState({ open: false, item: null });
   const [deleteConfirm, setDeleteConfirm] = useState(null); // item yang mau dihapus, nunggu konfirmasi
+  useLockBodyScroll(Boolean(deleteConfirm));
   const [, startTransition] = useTransition();
   const [statusPending, startStatusTransition] = useTransition();
   const [istirahatPending, startIstirahatTransition] = useTransition();
