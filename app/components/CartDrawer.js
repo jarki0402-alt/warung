@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { formatRupiah, formatChosenOpsi } from '@/lib/format';
-import { buildOrderMessage, buildWhatsAppUrl } from '@/lib/whatsapp';
+import { buildOrderMessage, buildWhatsAppUrl, buildWhatsAppSchemeUrl } from '@/lib/whatsapp';
 import { getStoreStatus, isDeliveryDayToday } from '@/lib/storeStatus';
 import { incrementAntarCountAction, logCheckoutAction } from '@/lib/actions';
 import useLockBodyScroll from './useLockBodyScroll';
@@ -115,6 +115,28 @@ export default function CartDrawer({
     // Kosongkan keranjang (termasuk yang tersimpan di localStorage) sebelum pindah ke
     // WhatsApp — supaya kalau pelanggan balik lagi ke web, gak ketemu pesanan lama.
     onClear();
+
+    // Standalone (dibuka dari ikon Add to Home Screen) — di mode ini iOS kadang
+    // TIDAK langsung lompat ke aplikasi WhatsApp lewat link wa.me biasa, malah
+    // nyangkut di halaman perantara "Chat on WhatsApp with...". Coba skema link
+    // langsung ke aplikasinya dulu; kalau gagal (mis. WhatsApp belum terinstal,
+    // halaman masih kelihatan setelah beberapa saat), baru jatuh balik ke wa.me.
+    const isStandalone =
+      typeof window !== 'undefined' &&
+      (window.matchMedia?.('(display-mode: standalone)').matches || window.navigator?.standalone === true);
+
+    if (isStandalone) {
+      const schemeUrl = buildWhatsAppSchemeUrl(settings, message);
+      // eslint-disable-next-line react-hooks/immutability -- `window` API browser, bukan state React
+      window.location.href = schemeUrl;
+      setTimeout(() => {
+        if (document.visibilityState === 'visible') {
+          window.location.href = url;
+        }
+      }, 1200);
+      return;
+    }
+
     // Navigasi langsung di tab yang sama — browser langsung menawarkan buka aplikasi
     // WhatsApp, tanpa tab kosong yang sempat muncul dulu. `window` itu API browser
     // global, bukan state React — linter salah kira ini "mutasi" yang berbahaya.
