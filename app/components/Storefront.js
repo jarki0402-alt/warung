@@ -285,7 +285,7 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
 
       {/* Header */}
       <header
-        className="sticky top-0 z-30 border-b border-ink/5 bg-cream/90 backdrop-blur-md"
+        className="sticky top-0 z-30 transform-gpu border-b border-ink/5 bg-cream/90 backdrop-blur-md will-change-transform"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 md:py-4">
@@ -431,7 +431,7 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
       {/* Bottom checkout bar — full-width, gaya aplikasi pesan-antar */}
       {totalItems > 0 && (
         <div
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/5 bg-surface/95 px-3 backdrop-blur-md sm:px-4"
+          className="fixed inset-x-0 bottom-0 z-40 transform-gpu border-t border-ink/5 bg-surface/95 px-3 backdrop-blur-md will-change-transform sm:px-4"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           <button

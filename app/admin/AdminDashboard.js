@@ -93,7 +93,7 @@ export default function AdminDashboard({ menu, settings }) {
   return (
     <div className="min-h-dvh bg-cream pb-16">
       <header
-        className="sticky top-0 z-20 border-b border-ink/5 bg-cream/90 backdrop-blur-md"
+        className="sticky top-0 z-20 transform-gpu border-b border-ink/5 bg-cream/90 backdrop-blur-md will-change-transform"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3.5">
