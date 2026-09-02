@@ -55,8 +55,12 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
         if (!res.ok || cancelled) return;
         const data = await res.json();
         if (cancelled) return;
-        setMenu(data.menu);
-        setSettings(data.settings);
+        // Kalau isinya sama persis dengan sebelumnya (kasus paling sering — penjual
+        // gak ubah apa-apa tiap 15 detik), jangan trigger render sama sekali. Ini
+        // yang bikin polling ini nyaris tidak berbekas di HP yang sangat lemot,
+        // bukan cuma hemat data tapi juga hemat kerja CPU/baterai.
+        setMenu((prev) => (JSON.stringify(prev) === JSON.stringify(data.menu) ? prev : data.menu));
+        setSettings((prev) => (JSON.stringify(prev) === JSON.stringify(data.settings) ? prev : data.settings));
       } catch {
         // Gagal/timeout (jaringan lambat/putus) — biarkan, dicoba lagi di interval berikutnya.
       } finally {
