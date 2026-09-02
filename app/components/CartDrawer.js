@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { formatRupiah, formatChosenOpsi } from '@/lib/format';
 import { buildOrderMessage, buildWhatsAppUrl } from '@/lib/whatsapp';
 import { getStoreStatus, isDeliveryDayToday } from '@/lib/storeStatus';
-import { incrementAntarCountAction } from '@/lib/actions';
+import { incrementAntarCountAction, logCheckoutAction } from '@/lib/actions';
 import useLockBodyScroll from './useLockBodyScroll';
 
 function resolveGroupItems(menu, label) {
@@ -102,12 +102,13 @@ export default function CartDrawer({
 
     setSubmitting(true);
 
-    if (metode === 'antar') {
-      // Dicatat dulu sebelum pindah ke WhatsApp (bukan fire-and-forget) supaya
-      // hitungan batas harian akurat — Redis INCR ini sangat cepat (~puluhan ms),
-      // gak berasa nambah delay dibanding proses buka aplikasi WhatsApp sendiri.
-      await incrementAntarCountAction().catch(() => {});
-    }
+    // Kedua panggilan ini nulis ke Redis (~puluhan ms, gak kerasa nambah delay
+    // dibanding proses buka WhatsApp sendiri) — dijalankan BARENGAN (Promise.all),
+    // bukan berurutan, biar total waktu tunggunya seminim mungkin.
+    await Promise.all([
+      metode === 'antar' ? incrementAntarCountAction().catch(() => {}) : null,
+      logCheckoutAction({ customerName, items, metode, note, total }).catch(() => {}),
+    ]);
 
     const message = buildOrderMessage({ settings, items, customerName, note, metode });
     const url = buildWhatsAppUrl(settings, message);
@@ -115,7 +116,9 @@ export default function CartDrawer({
     // WhatsApp — supaya kalau pelanggan balik lagi ke web, gak ketemu pesanan lama.
     onClear();
     // Navigasi langsung di tab yang sama — browser langsung menawarkan buka aplikasi
-    // WhatsApp, tanpa tab kosong yang sempat muncul dulu.
+    // WhatsApp, tanpa tab kosong yang sempat muncul dulu. `window` itu API browser
+    // global, bukan state React — linter salah kira ini "mutasi" yang berbahaya.
+    // eslint-disable-next-line react-hooks/immutability
     window.location.href = url;
   }
 
