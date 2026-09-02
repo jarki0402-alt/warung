@@ -43,11 +43,19 @@ export default function CartDrawer({ open, onClose, items, menu, settings, onAdd
 
   if (!open) return null;
 
+  // Status warung bisa berubah SAAT keranjang ini sedang terbuka (polling di
+  // Storefront tiap 5 detik) — tanpa ini, pelanggan yang sudah buka keranjang
+  // sebelum warung tutup tetap bisa checkout padahal warungnya sudah tutup.
+  const storeClosed = settings.status === 'tutup';
   const hasPriced = items.some((item) => item.harga != null);
   const hasUnpriced = items.some((item) => item.harga == null);
   const total = items.reduce((sum, item) => sum + (item.harga != null ? item.harga * item.qty : 0), 0);
 
   function handleOrder() {
+    if (storeClosed) {
+      setError('Warung baru saja tutup, belum bisa checkout sekarang ya.');
+      return;
+    }
     if (!customerName.trim()) {
       setError('Isi nama kamu dulu ya, biar Mbak Septi tahu pesanan ini punya siapa.');
       return;
@@ -173,6 +181,12 @@ export default function CartDrawer({ open, onClose, items, menu, settings, onAdd
 
             {/* Footer checkout — selalu terlihat, gaya e-commerce (Total + tombol bayar) */}
             <div className="shrink-0 border-t border-ink/5 bg-surface px-5 pb-5 pt-3">
+              {storeClosed && (
+                <p className="mb-3 rounded-xl bg-terracotta/10 px-3 py-2 text-center text-sm font-medium text-terracotta">
+                  Warung baru saja tutup — checkout belum bisa dilakukan sekarang.
+                </p>
+              )}
+
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-sm font-medium text-ink-soft">
                   Total {hasUnpriced && hasPriced ? '(sebagian)' : ''}
@@ -185,10 +199,11 @@ export default function CartDrawer({ open, onClose, items, menu, settings, onAdd
               <button
                 type="button"
                 onClick={handleOrder}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-whatsapp py-4 text-[15px] font-bold text-white shadow-lg shadow-whatsapp/30 transition active:scale-[0.98]"
+                disabled={storeClosed}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-whatsapp py-4 text-[15px] font-bold text-white shadow-lg shadow-whatsapp/30 transition active:scale-[0.98] disabled:bg-ink-soft disabled:shadow-none disabled:active:scale-100"
               >
                 <WhatsAppIcon />
-                Checkout via WhatsApp
+                {storeClosed ? 'Warung Sedang Tutup' : 'Checkout via WhatsApp'}
               </button>
               <button
                 type="button"

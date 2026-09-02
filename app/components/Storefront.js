@@ -470,6 +470,7 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
         onRemoveCombo={(chosenOpsi) => optionsPrompt && removeLine(optionsPrompt.id, chosenOpsi)}
         onNoteChange={(chosenOpsi, text) => optionsPrompt && setLineNote(optionsPrompt.id, chosenOpsi, text)}
         onClose={() => setOptionsPrompt(null)}
+        storeClosed={storeClosed}
       />
 
       <GroupedItemsSheet

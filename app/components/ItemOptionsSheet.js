@@ -9,12 +9,13 @@ import { PlusIcon, MinusIcon } from './icons';
 // Catatan: parent me-render komponen ini dengan `key={item?.id}` supaya setiap kali
 // item yang diatur berganti, komponen remount total dan state reset secara alami
 // (tanpa perlu useEffect untuk sinkronisasi state).
-export default function ItemOptionsSheet({ item, combos, onAddCombo, onRemoveCombo, onNoteChange, onClose }) {
+export default function ItemOptionsSheet({ item, combos, onAddCombo, onRemoveCombo, onNoteChange, onClose, storeClosed }) {
   const [selection, setSelection] = useState({});
 
   if (!item) return null;
 
   const isComplete = item.opsi.every((group) => selection[group.nama]);
+  const canAdd = isComplete && !storeClosed;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
@@ -83,11 +84,11 @@ export default function ItemOptionsSheet({ item, combos, onAddCombo, onRemoveCom
 
         <button
           type="button"
-          onClick={() => isComplete && onAddCombo(selection)}
-          disabled={!isComplete}
+          onClick={() => canAdd && onAddCombo(selection)}
+          disabled={!canAdd}
           className="mt-5 w-full rounded-2xl bg-leaf py-3.5 text-[15px] font-bold text-white shadow-lg shadow-leaf/20 active:scale-[0.98] disabled:opacity-40"
         >
-          {isComplete ? '+ Tambahkan' : 'Pilih semua opsi dulu'}
+          {storeClosed ? 'Warung Sedang Tutup' : isComplete ? '+ Tambahkan' : 'Pilih semua opsi dulu'}
         </button>
 
         {combos.length > 0 && (
@@ -111,8 +112,9 @@ export default function ItemOptionsSheet({ item, combos, onAddCombo, onRemoveCom
                       <button
                         type="button"
                         onClick={() => onAddCombo(combo.chosenOpsi)}
+                        disabled={storeClosed}
                         aria-label="Tambah"
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-leaf text-white active:scale-95"
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-leaf text-white active:scale-95 disabled:bg-ink-soft"
                       >
                         <PlusIcon size={14} />
                       </button>
