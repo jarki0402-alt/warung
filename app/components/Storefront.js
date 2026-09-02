@@ -24,11 +24,75 @@ function lineKey(id, chosenOpsi) {
   return s ? `${id}::${s}` : id;
 }
 
-export default function Storefront({ menu, settings }) {
+export default function Storefront({ menu: initialMenu, settings: initialSettings }) {
+  const [menu, setMenu] = useState(initialMenu);
+  const [settings, setSettings] = useState(initialSettings);
   const [cart, setCart] = useState({}); // { [lineKey]: { id, chosenOpsi, qty, note } }
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [optionsPrompt, setOptionsPrompt] = useState(null); // item lagi diatur opsinya (ItemOptionsSheet)
   const [groupPrompt, setGroupPrompt] = useState(null); // { label, items } lagi dipilih (GroupedItemsSheet)
+  const [removedNotice, setRemovedNotice] = useState(''); // pesan singkat saat item di keranjang jadi habis
+
+  // Cek status menu & warung secara berkala (bukan cuma sekali saat halaman dibuka)
+  // supaya kalau penjual tandai "Habis" atau tutup warung, pelanggan yang sudah
+  // buka halaman ikut lihat perubahannya tanpa perlu refresh manual. Berhenti polling
+  // saat tab tidak aktif — hemat data & baterai pelanggan.
+  useEffect(() => {
+    let cancelled = false;
+    async function poll() {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const res = await fetch('/api/menu-status', { cache: 'no-store' });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (cancelled) return;
+        setMenu(data.menu);
+        setSettings(data.settings);
+      } catch {
+        // Gagal sesaat (jaringan lambat/putus) — biarkan, dicoba lagi di interval berikutnya.
+      }
+    }
+    const interval = setInterval(poll, 15000);
+    document.addEventListener('visibilitychange', poll);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', poll);
+    };
+  }, []);
+
+  // Kalau ada item di keranjang yang jadi "Habis" (atau dihapus admin) setelah
+  // polling di atas, otomatis buang dari keranjang — supaya tidak bisa checkout
+  // barang yang sebenarnya sudah tidak tersedia. Dicek ulang tiap `menu` ATAU
+  // `cart` berubah (idempoten: kalau tidak ada yang perlu dibuang, tidak melakukan
+  // apa-apa, jadi aman dari infinite loop walau `cart` ikut jadi dependency).
+  useEffect(() => {
+    const removedNames = [];
+    const next = {};
+    let changed = false;
+    for (const [key, line] of Object.entries(cart)) {
+      const item = menu.find((m) => m.id === line.id);
+      if (item && item.tersedia) {
+        next[key] = line;
+      } else {
+        changed = true;
+        if (item?.nama) removedNames.push(item.nama);
+      }
+    }
+    if (!changed) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCart(next);
+    if (removedNames.length > 0) {
+      setRemovedNotice(`${[...new Set(removedNames)].join(', ')} baru saja habis dan dihapus dari keranjangmu.`);
+    }
+  }, [menu, cart]);
+
+  // Notifikasi hilang otomatis sendiri setelah beberapa detik.
+  useEffect(() => {
+    if (!removedNotice) return;
+    const timer = setTimeout(() => setRemovedNotice(''), 6000);
+    return () => clearTimeout(timer);
+  }, [removedNotice]);
 
   // Pulihkan keranjang dari localStorage setelah mount (bukan saat render pertama,
   // supaya HTML dari server tetap cocok dengan render awal di client — hindari
@@ -95,7 +159,11 @@ export default function Storefront({ menu, settings }) {
           note: entry.note || '',
           lineKey: key,
         }))
-        .filter((item) => item.id),
+        // item.id kosong = menu-nya sudah dihapus admin; tersedia=false = lagi habis.
+        // Dobel proteksi bareng efek pembersih keranjang di atas, supaya walau ada
+        // jeda sesaat sebelum efek itu jalan, checkout tetap tidak pernah menyertakan
+        // barang yang sudah tidak bisa dipesan.
+        .filter((item) => item.id && item.tersedia),
     [cart, menu]
   );
 
@@ -174,6 +242,20 @@ export default function Storefront({ menu, settings }) {
 
   return (
     <div className="min-h-dvh" style={{ paddingBottom: totalItems > 0 ? 'calc(90px + env(safe-area-inset-bottom))' : '1rem' }}>
+      {removedNotice && (
+        <div className="fixed inset-x-3 top-3 z-[80] mx-auto flex max-w-sm items-start gap-2.5 rounded-2xl bg-ink px-4 py-3 text-sm text-white shadow-xl animate-slide-up sm:inset-x-0">
+          <span className="flex-1">{removedNotice}</span>
+          <button
+            type="button"
+            onClick={() => setRemovedNotice('')}
+            aria-label="Tutup notifikasi"
+            className="shrink-0 text-white/70"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-30 border-b border-ink/5 bg-cream/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 md:py-4">
