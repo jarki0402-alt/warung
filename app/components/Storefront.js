@@ -39,23 +39,35 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
   // saat tab tidak aktif — hemat data & baterai pelanggan.
   useEffect(() => {
     let cancelled = false;
+    let inFlight = null; // AbortController permintaan yang lagi jalan, kalau ada
+
     async function poll() {
       if (document.visibilityState !== 'visible') return;
+      // Kalau permintaan sebelumnya belum selesai (jaringan sangat lambat), batalkan
+      // dulu — supaya di koneksi buruk gak numpuk banyak request bersamaan yang malah
+      // rebutan bandwidth sama hal lain (gambar, dst). Selalu maksimal 1 yang jalan.
+      inFlight?.abort();
+      const controller = new AbortController();
+      inFlight = controller;
+      const timeout = setTimeout(() => controller.abort(), 10000);
       try {
-        const res = await fetch('/api/menu-status', { cache: 'no-store' });
+        const res = await fetch('/api/menu-status', { cache: 'no-store', signal: controller.signal });
         if (!res.ok || cancelled) return;
         const data = await res.json();
         if (cancelled) return;
         setMenu(data.menu);
         setSettings(data.settings);
       } catch {
-        // Gagal sesaat (jaringan lambat/putus) — biarkan, dicoba lagi di interval berikutnya.
+        // Gagal/timeout (jaringan lambat/putus) — biarkan, dicoba lagi di interval berikutnya.
+      } finally {
+        clearTimeout(timeout);
       }
     }
     const interval = setInterval(poll, 15000);
     document.addEventListener('visibilitychange', poll);
     return () => {
       cancelled = true;
+      inFlight?.abort();
       clearInterval(interval);
       document.removeEventListener('visibilitychange', poll);
     };
