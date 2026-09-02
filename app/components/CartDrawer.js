@@ -263,7 +263,7 @@ export default function CartDrawer({
                 />
                 {metode === 'antar' && (
                   <p className="rounded-xl bg-leaf/10 px-3 py-2 text-sm font-medium text-leaf-dark">
-                    Jangan lupa kirim Share Location WhatsApp ya, biar gampang dianter.
+                    Nanti jangan lupa kirim Share Location WhatsApp ya, biar gampang dianter.
                   </p>
                 )}
                 {error && <p className="text-sm font-medium text-terracotta">{error}</p>}

@@ -40,11 +40,11 @@ export default function DriverDashboard({ settings, antarCountToday }) {
       <main className="flex flex-1 flex-col items-center justify-center gap-6 px-6 pb-16">
         <div
           className={`flex h-40 w-40 flex-col items-center justify-center gap-1.5 rounded-full shadow-lg transition ${
-            optimisticMengantar ? 'bg-gold/20 ring-4 ring-gold/40' : 'bg-leaf/10 ring-4 ring-leaf/30'
+            optimisticMengantar ? 'animate-pulse bg-terracotta/25 ring-4 ring-terracotta' : 'bg-leaf/10 ring-4 ring-leaf/30'
           }`}
         >
           <span className="text-4xl">{optimisticMengantar ? '🛵' : '✅'}</span>
-          <span className={`font-display text-lg font-bold ${optimisticMengantar ? 'text-terracotta-dark' : 'text-leaf-dark'}`}>
+          <span className={`font-display text-lg font-bold ${optimisticMengantar ? 'text-terracotta' : 'text-leaf-dark'}`}>
             {optimisticMengantar ? 'Mengantar' : 'Siap'}
           </span>
         </div>
