@@ -4,7 +4,7 @@ import Storefront from './components/Storefront';
 
 export const dynamic = 'force-dynamic';
 
-const SITE_URL = 'https://www.warungmbaksepti.biz.id';
+const SITE_URL = 'https://warungmbaksepti.biz.id';
 
 function buildJsonLd(settings) {
   const data = {

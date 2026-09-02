@@ -1,6 +1,6 @@
 export default function robots() {
   return {
     rules: [{ userAgent: '*', allow: '/', disallow: '/admin' }],
-    sitemap: 'https://www.warungmbaksepti.biz.id/sitemap.xml',
+    sitemap: 'https://warungmbaksepti.biz.id/sitemap.xml',
   };
 }
