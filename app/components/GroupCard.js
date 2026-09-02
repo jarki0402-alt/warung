@@ -23,14 +23,17 @@ export default function GroupCard({ label, items, foto, totalQty, onOpen, storeC
           )}
         </div>
 
-        {/* Di luar area overflow-hidden supaya badge tidak terpotong */}
-        <span
-          className={`absolute -bottom-3.5 right-2 flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold text-white shadow-md ring-4 ring-cream ${
-            disabled ? 'bg-ink-soft' : 'bg-leaf'
-          }`}
-        >
-          {totalQty > 0 ? totalQty : <PlusIcon size={18} />}
-        </span>
+        {/* Sembunyikan total kalau belum ada yang ditambahkan & tidak bisa dipesan (habis/tutup) —
+            selaras dengan MenuCard. Tetap tampilkan jumlah kalau sudah ada di keranjang. */}
+        {(totalQty > 0 || !disabled) && (
+          <span
+            className={`absolute -bottom-3.5 right-2 flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold text-white shadow-md ring-4 ring-cream ${
+              disabled ? 'bg-ink-soft' : 'bg-leaf'
+            }`}
+          >
+            {totalQty > 0 ? totalQty : <PlusIcon size={18} />}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-1 px-3 pb-3 pt-4">

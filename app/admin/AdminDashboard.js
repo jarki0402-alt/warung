@@ -22,9 +22,15 @@ export default function AdminDashboard({ menu, settings }) {
   // Update tampilan LANGSUNG saat tombol diklik (gak nunggu round-trip server dulu),
   // baru disinkronkan ke data asli begitu server-nya selesai. Ini yang bikin toggle
   // "Habis/Tersedia" dan "Buka/Tutup" kerasa instan walau prosesnya di background.
-  const [optimisticMenu, setOptimisticMenu] = useOptimistic(menu, (state, { id, tersedia }) =>
-    state.map((item) => (item.id === id ? { ...item, tersedia } : item))
-  );
+  const [optimisticMenu, setOptimisticMenu] = useOptimistic(menu, (state, action) => {
+    if (action.type === 'toggle') {
+      return state.map((item) => (item.id === action.id ? { ...item, tersedia: action.tersedia } : item));
+    }
+    if (action.type === 'delete') {
+      return state.filter((item) => item.id !== action.id);
+    }
+    return state;
+  });
   const [optimisticSettings, setOptimisticSettings] = useOptimistic(settings, (state, patch) => ({
     ...state,
     ...patch,
@@ -44,6 +50,7 @@ export default function AdminDashboard({ menu, settings }) {
     const item = deleteConfirm;
     setDeleteConfirm(null);
     startTransition(async () => {
+      setOptimisticMenu({ type: 'delete', id: item.id });
       const fd = new FormData();
       fd.set('id', item.id);
       const result = await deleteMenuItemAction(fd);
@@ -53,7 +60,7 @@ export default function AdminDashboard({ menu, settings }) {
 
   function handleToggleAvailability(item) {
     startTransition(async () => {
-      setOptimisticMenu({ id: item.id, tersedia: !item.tersedia });
+      setOptimisticMenu({ type: 'toggle', id: item.id, tersedia: !item.tersedia });
       const result = await toggleAvailabilityAction(item.id, !item.tersedia);
       if (result?.error) alert(result.error);
     });
