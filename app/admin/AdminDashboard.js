@@ -413,6 +413,16 @@ function SettingsTab({ settings }) {
       <Field label="Tagline">
         <input name="tagline" defaultValue={settings.tagline} className="input" placeholder="Pecel segar setiap hari" />
       </Field>
+      <Field label="Meta Description (teks cuplikan di hasil pencarian Google — kosongkan buat pakai Tagline)">
+        <textarea
+          name="metaDescription"
+          rows={2}
+          maxLength={200}
+          defaultValue={settings.metaDescription}
+          className="input resize-none"
+          placeholder="Pecel segar dengan sambal gurih yang bikin nambah!..."
+        />
+      </Field>
       <Field label="Nomor WhatsApp">
         <input
           name="nomorWhatsApp"

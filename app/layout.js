@@ -18,9 +18,11 @@ const SITE_URL = 'https://www.warungmbaksepti.biz.id';
 
 export async function generateMetadata() {
   const settings = await getSettings();
-  const title = `${settings.namaWarung} — Pesan Online via WhatsApp`;
+  const title = `${settings.namaWarung} — Pecel Gurih & Soto Rumahan`;
   const description =
-    settings.tagline || 'Pesan makanan warung favoritmu, langsung terkirim ke WhatsApp, ambil sendiri di warung.';
+    settings.metaDescription ||
+    settings.tagline ||
+    'Pesan makanan warung favoritmu, langsung terkirim ke WhatsApp, ambil sendiri di warung.';
 
   return {
     metadataBase: new URL(SITE_URL),
