@@ -12,7 +12,7 @@ import {
   updateSettingsAction,
 } from '@/lib/actions';
 import { HARI_OPTIONS } from '@/lib/seed';
-import { getJakartaDayName } from '@/lib/storeStatus';
+import { getJakartaDayName, getStoreStatus } from '@/lib/storeStatus';
 import useLockBodyScroll from '../components/useLockBodyScroll';
 import MenuItemModal from './MenuItemModal';
 
@@ -41,6 +41,11 @@ export default function AdminDashboard({ menu, settings }) {
     ...state,
     ...patch,
   }));
+
+  // Status yang beneran dilihat pelanggan (ikut jadwal jam buka/tutup), bukan cuma
+  // field settings.status mentah — supaya admin lihat status yang sama persis.
+  const effectiveStatus = getStoreStatus(optimisticSettings);
+  const isForcedClosed = optimisticSettings.status === 'tutup';
 
   const categories = useMemo(() => [...new Set(menu.map((i) => i.kategori))].sort(), [menu]);
   const subCategories = useMemo(
@@ -152,16 +157,26 @@ export default function AdminDashboard({ menu, settings }) {
             onClick={handleToggleStatus}
             disabled={statusPending}
             className={`flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-semibold shadow-sm transition ${
-              optimisticSettings.status === 'tutup' ? 'bg-terracotta/10 text-terracotta' : 'bg-leaf/10 text-leaf-dark'
+              effectiveStatus.closed ? 'bg-terracotta/10 text-terracotta' : 'bg-leaf/10 text-leaf-dark'
             }`}
           >
             <span>
-              Status warung: <strong>{optimisticSettings.status === 'tutup' ? 'Tutup' : 'Buka'}</strong>
+              Status warung: <strong>{effectiveStatus.closed ? 'Tutup' : 'Buka'}</strong>
+              {isForcedClosed && <span className="ml-1.5 font-normal opacity-70">(ditutup manual)</span>}
+              {!isForcedClosed && effectiveStatus.reason === 'di-luar-jam' && (
+                <span className="ml-1.5 font-normal opacity-70">(di luar jam operasional)</span>
+              )}
             </span>
             <span className="rounded-full bg-white px-3 py-1 text-xs shadow-sm">
-              {`Tandai ${optimisticSettings.status === 'tutup' ? 'Buka' : 'Tutup'}`}
+              {isForcedClosed ? 'Aktifkan Jadwal Otomatis' : 'Tutup Sekarang'}
             </span>
           </button>
+          {!isForcedClosed && (
+            <p className="px-1 text-xs text-ink-soft">
+              Otomatis buka {settings.jamBuka || '-'} sampai {settings.jamTutup || '-'}. Pakai tombol di atas cuma
+              kalau mau tutup mendadak di luar jadwal itu.
+            </p>
+          )}
 
           {/* Istirahat — tutup sejenak (sholat/istirahat), beda dari tutup penuh. Cuma
               relevan kalau warung lagi "Buka" — kalau sudah tutup penuh, gak perlu ini. */}
@@ -400,8 +415,12 @@ function SettingsTab({ settings }) {
       <Field label="Alamat (opsional)">
         <input name="alamat" defaultValue={settings.alamat} className="input" placeholder="Jl. ..." />
       </Field>
-      <Field label="Jam Operasional">
-        <input name="jamOperasional" defaultValue={settings.jamOperasional} className="input" placeholder="08.00 - 17.00" />
+      <Field label="Jam Operasional (warung otomatis buka & tutup sendiri sesuai jam ini)">
+        <div className="flex items-center gap-2.5">
+          <input type="time" name="jamBuka" defaultValue={settings.jamBuka} required className="input" />
+          <span className="text-sm text-ink-soft">sampai</span>
+          <input type="time" name="jamTutup" defaultValue={settings.jamTutup} required className="input" />
+        </div>
       </Field>
       <Field label="Libur Mingguan (otomatis tutup tiap minggu di hari ini, tanpa perlu di-toggle manual)">
         <select name="hariLibur" defaultValue={settings.hariLibur || ''} className="input">

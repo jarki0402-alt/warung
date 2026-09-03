@@ -304,7 +304,7 @@ export default function Storefront({ menu: initialMenu, settings: initialSetting
               >
                 <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${storeClosed ? 'bg-terracotta' : 'bg-leaf'}`} />
                 {closedReason === 'istirahat' ? 'Istirahat' : closedReason === 'libur-mingguan' ? 'Libur' : storeClosed ? 'Tutup' : 'Buka'}
-                {settings.jamOperasional ? ` · ${settings.jamOperasional}` : ''}
+                {settings.jamBuka && settings.jamTutup ? ` · ${settings.jamBuka} - ${settings.jamTutup}` : ''}
               </span>
             </div>
           </div>
