@@ -1,6 +1,7 @@
 'use client';
 
 import { useOptimistic, useTransition } from 'react';
+import Link from 'next/link';
 import { driverLogoutAction, toggleSedangMengantarAction } from '@/lib/actions';
 
 export default function DriverDashboard({ settings, antarCountToday }) {
@@ -28,13 +29,21 @@ export default function DriverDashboard({ settings, antarCountToday }) {
           <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Driver</p>
           <h1 className="font-display text-base font-bold text-ink">{settings.namaWarung}</h1>
         </div>
-        <button
-          type="button"
-          onClick={() => driverLogoutAction()}
-          className="rounded-full bg-ink/5 px-3.5 py-2 text-xs font-semibold text-ink-soft"
-        >
-          Keluar
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/driver/pasang"
+            className="rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-ink-soft shadow-sm ring-1 ring-black/5"
+          >
+            📲 Pasang
+          </Link>
+          <button
+            type="button"
+            onClick={() => driverLogoutAction()}
+            className="rounded-full bg-ink/5 px-3.5 py-2 text-xs font-semibold text-ink-soft"
+          >
+            Keluar
+          </button>
+        </div>
       </header>
 
       <main className="flex flex-1 flex-col items-center justify-center gap-6 px-6 pb-16">

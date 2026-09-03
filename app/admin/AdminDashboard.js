@@ -101,12 +101,27 @@ export default function AdminDashboard({ menu, settings }) {
         className="sticky top-0 z-20 transform-gpu border-b border-ink/5 bg-cream/90 backdrop-blur-md will-change-transform"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3.5">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Admin</p>
-            <h1 className="font-display text-base font-bold text-ink">{settings.namaWarung}</h1>
+        <div className="mx-auto max-w-3xl px-4 py-3.5">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Admin</p>
+              <h1 className="font-display text-base font-bold text-ink">{settings.namaWarung}</h1>
+            </div>
+            <button
+              type="button"
+              onClick={() => logoutAction()}
+              className="shrink-0 rounded-full bg-ink/5 px-3.5 py-2 text-xs font-semibold text-ink-soft"
+            >
+              Keluar
+            </button>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            <Link
+              href="/admin/pasang"
+              className="rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-ink-soft shadow-sm ring-1 ring-black/5"
+            >
+              📲 Pasang
+            </Link>
             <Link
               href="/admin/qr"
               className="rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-ink-soft shadow-sm ring-1 ring-black/5"
@@ -120,13 +135,6 @@ export default function AdminDashboard({ menu, settings }) {
             >
               Lihat Web →
             </Link>
-            <button
-              type="button"
-              onClick={() => logoutAction()}
-              className="rounded-full bg-ink/5 px-3.5 py-2 text-xs font-semibold text-ink-soft"
-            >
-              Keluar
-            </button>
           </div>
         </div>
 
