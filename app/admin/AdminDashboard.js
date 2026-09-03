@@ -14,6 +14,7 @@ import {
 import { HARI_OPTIONS } from '@/lib/seed';
 import { getJakartaDayName, getStoreStatus } from '@/lib/storeStatus';
 import useLockBodyScroll from '../components/useLockBodyScroll';
+import { DownloadIcon } from '../components/icons';
 import MenuItemModal from './MenuItemModal';
 
 export default function AdminDashboard({ menu, settings }) {
@@ -118,9 +119,10 @@ export default function AdminDashboard({ menu, settings }) {
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
             <Link
               href="/admin/pasang"
-              className="rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-ink-soft shadow-sm ring-1 ring-black/5"
+              className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-ink-soft shadow-sm ring-1 ring-black/5"
             >
-              📲 Pasang
+              <DownloadIcon size={14} />
+              Pasang
             </Link>
             <Link
               href="/admin/qr"

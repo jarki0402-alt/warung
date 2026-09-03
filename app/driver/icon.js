@@ -13,12 +13,13 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#e7a83c',
+          background: '#2e5e39',
           borderRadius: 16,
-          fontSize: 38,
         }}
       >
-        🛵
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="#fff">
+          <polygon points="3 11 22 2 13 21 11 13 3 11" />
+        </svg>
       </div>
     ),
     { ...size }

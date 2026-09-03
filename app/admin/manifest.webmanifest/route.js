@@ -14,7 +14,7 @@ export async function GET() {
     scope: '/admin',
     display: 'standalone',
     background_color: '#fbf3e5',
-    theme_color: '#2b2118',
+    theme_color: '#2e5e39',
     lang: 'id',
     icons: [{ src: '/admin/icon', sizes: '64x64', type: 'image/png' }],
   };

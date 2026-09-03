@@ -3,6 +3,7 @@
 import { useOptimistic, useTransition } from 'react';
 import Link from 'next/link';
 import { driverLogoutAction, toggleSedangMengantarAction } from '@/lib/actions';
+import { CheckIcon, DownloadIcon, NavigationIcon } from '../components/icons';
 
 export default function DriverDashboard({ settings, antarCountToday }) {
   const [pending, startTransition] = useTransition();
@@ -24,7 +25,10 @@ export default function DriverDashboard({ settings, antarCountToday }) {
 
   return (
     <div className="flex min-h-dvh flex-col bg-cream">
-      <header className="flex items-center justify-between px-4 py-3.5" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <header
+        className="flex items-center justify-between px-4 pb-3.5"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 14px)' }}
+      >
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Driver</p>
           <h1 className="font-display text-base font-bold text-ink">{settings.namaWarung}</h1>
@@ -32,9 +36,10 @@ export default function DriverDashboard({ settings, antarCountToday }) {
         <div className="flex items-center gap-2">
           <Link
             href="/driver/pasang"
-            className="rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-ink-soft shadow-sm ring-1 ring-black/5"
+            className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-ink-soft shadow-sm ring-1 ring-black/5"
           >
-            📲 Pasang
+            <DownloadIcon size={14} />
+            Pasang
           </Link>
           <button
             type="button"
@@ -52,7 +57,11 @@ export default function DriverDashboard({ settings, antarCountToday }) {
             optimisticMengantar ? 'animate-pulse bg-terracotta/25 ring-4 ring-terracotta' : 'bg-leaf/10 ring-4 ring-leaf/30'
           }`}
         >
-          <span className="text-4xl">{optimisticMengantar ? '🛵' : '✅'}</span>
+          {optimisticMengantar ? (
+            <NavigationIcon size={36} className="text-terracotta" />
+          ) : (
+            <CheckIcon size={36} className="text-leaf-dark" />
+          )}
           <span className={`font-display text-lg font-bold ${optimisticMengantar ? 'text-terracotta' : 'text-leaf-dark'}`}>
             {optimisticMengantar ? 'Mengantar' : 'Siap'}
           </span>
